@@ -5,19 +5,11 @@ import {
   Send,
   Square,
   Bot,
-  User,
-  ChevronRight,
-  ChevronDown,
   ArrowDown,
   Copy,
   Check,
-  Calendar,
-  Mic,
-  Plus,
-  MessageCircle,
-  X,
-  History,
-  LayoutGrid
+  Bell,
+  BellRing
 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -28,7 +20,6 @@ import ToolExecutionCard from './ToolExecutionCard'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { motion, AnimatePresence } from 'framer-motion'
-import Link from 'next/link'
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -111,30 +102,16 @@ function MessageBubble({ message }: { message: ChatMessage }) {
             <div className="w-full space-y-4">
               {message.toolCalls && message.toolCalls.length > 0 && (
                 <div className="space-y-3">
-                  <button 
-                    onClick={() => setToolsExpanded(!toolsExpanded)}
-                    className="flex items-center gap-2 text-[11px] font-bold text-zinc-500 hover:text-zinc-300 transition-colors group"
-                  >
-                     <div className="flex items-center gap-1.5 bg-zinc-900/50 px-3 py-1.5 rounded-full border border-zinc-800/50 hover:bg-zinc-900 transition-all">
+                  <div className="flex items-center gap-2 text-[11px] font-bold text-zinc-500">
+                     <div className="flex items-center gap-1.5 bg-zinc-900/50 px-3 py-1.5 rounded-full border border-zinc-800/50">
                         <span className="opacity-80">Used {message.toolCalls.length} tools</span>
-                        {toolsExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />}
                      </div>
-                  </button>
-
-                  <AnimatePresence>
-                    {toolsExpanded && (
-                      <motion.div 
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="overflow-hidden space-y-2"
-                      >
-                        {message.toolCalls.map(tc => (
-                          <ToolExecutionCard key={tc.id} toolCall={tc} />
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  </div>
+                  <div className="space-y-2">
+                    {message.toolCalls.map(tc => (
+                      <ToolExecutionCard key={tc.id} toolCall={tc} />
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -203,8 +180,66 @@ export default function ChatInterface() {
   const { messages, isLoading, sendMessage, stopGeneration, clearMessages } = useAgentChat()
   const [input, setInput] = useState('')
   const [showScrollDown, setShowScrollDown] = useState(false)
+  const [notifStatus, setNotifStatus] = useState<'default' | 'granted' | 'denied' | 'loading'>('default')
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setNotifStatus(Notification.permission as 'default' | 'granted' | 'denied')
+    }
+  }, [])
+
+  const VAPID_PUBLIC_KEY = 'BMGZ5AmtQV0n6OzUxptLGbbwi3TZ5hlujzZWW63EWxdBM-F4Kqp-fhFM10A1OKeKXQbRcUmYrj5cysUNL_jJHQE'
+  const API_BASE = 'https://api.agent.coolgeek.me'
+
+  function urlBase64ToUint8Array(base64String: string) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4)
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+    const rawData = window.atob(base64)
+    const outputArray = new Uint8Array(rawData.length)
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i)
+    }
+    return outputArray
+  }
+
+  const handleEnableNotifications = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      alert('Push notifications are not supported in this browser.')
+      return
+    }
+
+    setNotifStatus('loading')
+
+    try {
+      const permission = await Notification.requestPermission()
+      setNotifStatus(permission as 'default' | 'granted' | 'denied')
+
+      if (permission !== 'granted') {
+        return
+      }
+
+      const registration = await navigator.serviceWorker.register('/sw.js')
+      await navigator.serviceWorker.ready
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      })
+
+      await fetch(API_BASE + '/notifications/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subscription.toJSON()),
+      })
+
+      console.log('[Notifications] Subscribed successfully')
+    } catch (err) {
+      console.error('[Notifications] Error:', err)
+      setNotifStatus('default')
+    }
+  }
 
   useEffect(() => {
     if (scrollRef.current && !showScrollDown) {
@@ -299,50 +334,11 @@ export default function ChatInterface() {
         </AnimatePresence>
       </div>
 
-      {/* Floating Input Area - Exactly like Wingman */}
+      {/* Floating Input Area */}
       <div className="absolute bottom-10 left-0 right-0 px-8 z-30 pointer-events-none">
         <div className="max-w-[840px] mx-auto pointer-events-auto">
-          {/* Action Row */}
-          <div className="flex items-center gap-2.5 mb-5 overflow-x-auto no-scrollbar pb-1 px-2">
-             {[
-               { icon: <History className="w-3.5 h-3.5" />, label: 'Check Ian\'s sports schedule' },
-               { icon: <Bot className="w-3.5 h-3.5" />, label: 'Draft email about PBCoach app' },
-               { icon: <Calendar className="w-3.5 h-3.5" />, label: 'What is my agenda for today?' },
-               { icon: <LayoutGrid className="w-3.5 h-3.5" />, label: 'Summarize my recent GitHub PRs' },
-             ].map((s, i) => (
-               <button
-                 key={i}
-                 onClick={() => sendMessage(s.label)}
-                 className="flex-shrink-0 flex items-center gap-2.5 px-4 py-2 rounded-full bg-zinc-900/60 border border-zinc-800/80 hover:border-zinc-600 hover:bg-zinc-800 transition-all backdrop-blur-md shadow-sm ring-1 ring-white/5"
-               >
-                 <span className="text-zinc-500">{s.icon}</span>
-                 <span className="text-[11px] font-bold text-zinc-400 whitespace-nowrap tracking-tight">{s.label}</span>
-               </button>
-             ))}
-          </div>
-
           {/* Main Input Box */}
           <div className="bg-zinc-900/95 border border-zinc-800 rounded-[32px] shadow-2xl overflow-hidden focus-within:border-zinc-700 transition-all backdrop-blur-xl ring-1 ring-white/5">
-            {/* Top Banner */}
-            <div className="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-indigo-900/30 via-cyan-900/10 to-zinc-900 border-b border-zinc-800/50">
-               <div className="flex items-center gap-3">
-                  <div className="flex -space-x-1.5">
-                    <div className="w-4.5 h-4.5 rounded-full bg-zinc-100 flex items-center justify-center border-2 border-zinc-900 shadow-lg">
-                       <span className="text-[9px] font-black text-black italic">X</span>
-                    </div>
-                    <div className="w-4.5 h-4.5 rounded-full bg-cyan-400 border-2 border-zinc-900 shadow-lg" />
-                    <div className="w-4.5 h-4.5 rounded-full bg-zinc-800 flex items-center justify-center border-2 border-zinc-900 shadow-lg">
-                       <span className="text-[9px] font-black text-white tracking-tighter">231</span>
-                    </div>
-                  </div>
-                  <span className="text-[11px] font-black text-zinc-100 tracking-tight italic opacity-90">Let Wingman run apps for you</span>
-               </div>
-               <div className="flex items-center gap-4">
-                  <Link href="/connections" className="px-5 py-1.5 rounded-full bg-zinc-100 text-black text-[10px] font-black uppercase tracking-[0.1em] hover:bg-white transition-all transform active:scale-95 shadow-md flex items-center justify-center">Connect</Link>
-                  <X className="w-4 h-4 text-zinc-600 hover:text-zinc-400 cursor-pointer transition-colors" />
-               </div>
-            </div>
-
             {/* Form */}
             <form onSubmit={handleSubmit} className="p-3 pt-4">
                <div className="px-5 pb-3">
@@ -361,19 +357,30 @@ export default function ChatInterface() {
                
                <div className="flex items-center justify-between px-3 pb-3">
                   <div className="flex items-center gap-1.5">
-                    <button type="button" className="p-2.5 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 rounded-full transition-all">
-                       <Plus className="w-5 h-5" />
-                    </button>
-                    <button type="button" className="p-2.5 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 rounded-full transition-all">
-                       <Calendar className="w-5 h-5" />
+                    <button
+                      type="button"
+                      onClick={handleEnableNotifications}
+                      disabled={notifStatus === 'denied'}
+                      title={
+                        notifStatus === 'granted' ? 'Notifications enabled' :
+                        notifStatus === 'denied' ? 'Notifications blocked' :
+                        notifStatus === 'loading' ? 'Enabling...' :
+                        'Enable push notifications'
+                      }
+                      className={cn(
+                        "p-2.5 rounded-full transition-all",
+                        notifStatus === 'granted'
+                          ? "text-cyan-400 bg-cyan-400/10 border border-cyan-400/20"
+                          : notifStatus === 'denied'
+                          ? "text-red-400/50 cursor-not-allowed"
+                          : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800"
+                      )}
+                    >
+                       {notifStatus === 'granted' ? <BellRing className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
                     </button>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <button type="button" className="p-2.5 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 rounded-full transition-all">
-                       <Mic className="w-5 h-5" />
-                    </button>
-                    
                     {isLoading ? (
                       <button
                         type="button"
@@ -396,19 +403,9 @@ export default function ChatInterface() {
             </form>
           </div>
           <p className="text-center text-[10px] text-zinc-700 font-bold uppercase tracking-[0.2em] mt-5">
-            Agent Instance • V0.2.1-SNAPSHOT • Phoenix, AZ
+            Agent Instance • V0.4.1 • Phoenix, AZ
           </p>
         </div>
-      </div>
-
-      {/* Floating Chat Widget Icon */}
-      <div className="fixed bottom-8 right-8 z-40 hidden md:block">
-         <div className="relative group cursor-pointer transition-all hover:scale-110 active:scale-95">
-            <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-2xl border border-zinc-200">
-               <MessageCircle className="w-7 h-7 text-black" />
-            </div>
-            <div className="absolute -top-1 -right-1 w-6 h-6 bg-black border-2 border-white text-white rounded-full flex items-center justify-center text-[11px] font-black shadow-lg">2</div>
-         </div>
       </div>
     </div>
   )
