@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 
 const AGENT_URL = 'https://api.agent.coolgeek.me'
+const SESSION_STORAGE_KEY = 'wingman_current_session_id'
 
 export type MessageRole = 'user' | 'assistant' | 'system'
 
@@ -36,14 +37,14 @@ export function useAgentChat() {
   const [isLoading, setIsLoading] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
 
-  const generateId = () => `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+  const generateId = () => \`msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}\`
 
   const fetchSessions = useCallback(async () => {
     try {
-      const res = await fetch(`${AGENT_URL}/sessions`)
+      const res = await fetch(\`\${AGENT_URL}/sessions\`)
       if (!res.ok) throw new Error('Failed to fetch sessions')
       const data = await res.json()
-      setSessions(data.sessions || [])
+      setSessions(data || [])
     } catch (err) {
       console.error('Session fetch error:', err)
     }
@@ -52,13 +53,15 @@ export function useAgentChat() {
   const loadSession = useCallback(async (sessionId: string) => {
     setIsLoading(true)
     setCurrentSessionId(sessionId)
+    localStorage.setItem(SESSION_STORAGE_KEY, sessionId)
+    
     try {
-      const res = await fetch(`${AGENT_URL}/sessions/${sessionId}/messages`)
+      const res = await fetch(\`\${AGENT_URL}/history/\${sessionId}\`)
       if (!res.ok) throw new Error('Failed to fetch history')
       const data = await res.json()
       
       const history = (data.messages || []).map((m: any, i: number) => ({
-        id: `hist_${i}`,
+        id: \`hist_\${i}\`,
         role: m.role,
         content: m.content,
         timestamp: new Date(m.timestamp),
@@ -78,16 +81,20 @@ export function useAgentChat() {
   }, [])
 
   const startNewChat = useCallback(() => {
-    const newId = `chat_${Date.now()}`
+    const newId = \`chat_\${Date.now()}\`
     setCurrentSessionId(newId)
+    localStorage.setItem(SESSION_STORAGE_KEY, newId)
     setMessages([])
   }, [])
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || isLoading) return
 
-    const sessionId = currentSessionId || `chat_${Date.now()}`
-    if (!currentSessionId) setCurrentSessionId(sessionId)
+    const sessionId = currentSessionId || \`chat_\${Date.now()}\`
+    if (!currentSessionId) {
+        setCurrentSessionId(sessionId)
+        localStorage.setItem(SESSION_STORAGE_KEY, sessionId)
+    }
 
     const userMessage: ChatMessage = {
       id: generateId(),
@@ -115,7 +122,7 @@ export function useAgentChat() {
     try {
       abortRef.current = new AbortController()
 
-      const response = await fetch(`${AGENT_URL}/chat`, {
+      const response = await fetch(\`\${AGENT_URL}/chat\`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -130,7 +137,7 @@ export function useAgentChat() {
         signal: abortRef.current.signal,
       })
 
-      if (!response.ok) throw new Error(`Server error: ${response.status}`)
+      if (!response.ok) throw new Error(\`Server error: \${response.status}\`)
       
       const data = await response.json()
       
@@ -156,7 +163,7 @@ export function useAgentChat() {
             m.id === assistantId
               ? {
                   ...m,
-                  content: `⚠️ Error: ${err.message}`,
+                  content: \`⚠️ Error: \${err.message}\`,
                   isStreaming: false,
                 }
               : m
@@ -177,9 +184,14 @@ export function useAgentChat() {
     setMessages([])
   }, [])
 
+  // Initial load
   useEffect(() => {
+    const savedSessionId = localStorage.getItem(SESSION_STORAGE_KEY)
+    if (savedSessionId) {
+      loadSession(savedSessionId)
+    }
     fetchSessions()
-  }, [fetchSessions])
+  }, [fetchSessions, loadSession])
 
   return {
     messages,
