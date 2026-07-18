@@ -82,27 +82,27 @@ function MessageBubble({ message }: { message: ChatMessage }) {
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={cn("flex flex-col w-full max-w-4xl mx-auto px-6 py-6 relative", 
+      className={cn("flex flex-col w-full max-w-4xl mx-auto px-4 md:px-6 py-4 md:py-6 relative", 
         isUser ? "items-end" : "items-start"
       )}
     >
-      <div className={cn("flex items-start gap-4 w-full", isUser ? "flex-row-reverse" : "flex-row")}>
+      <div className={cn("flex items-start gap-3 md:gap-4 w-full", isUser ? "flex-row-reverse" : "flex-row")}>
         {!isUser && (
-           <div className="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center mt-1 shadow-[0_0_15px_rgba(34,211,238,0.1)]">
-              <Bot className="w-4 h-4 text-cyan-400" />
+           <div className="flex-shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center mt-1 shadow-[0_0_15px_rgba(34,211,238,0.1)]">
+              <Bot className="w-3.5 h-3.5 md:w-4 md:h-4 text-cyan-400" />
            </div>
         )}
         
         <div className={cn("flex-1 min-w-0", isUser ? "flex flex-col items-end" : "flex flex-col items-start")}>
           {isUser ? (
-             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-5 py-3 shadow-sm max-w-[90%] ring-1 ring-white/5">
-                <p className="text-[15px] text-zinc-100 leading-relaxed font-medium">{message.content}</p>
+             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-2.5 md:px-5 md:py-3 shadow-sm max-w-[95%] sm:max-w-[90%] ring-1 ring-white/5">
+                <p className="text-[14px] md:text-[15px] text-zinc-100 leading-relaxed font-medium">{message.content}</p>
              </div>
           ) : (
             <div className="w-full space-y-4">
               {message.toolCalls && message.toolCalls.length > 0 && (
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-[11px] font-bold text-zinc-500">
+                  <div className="flex items-center gap-2 text-[10px] md:text-[11px] font-bold text-zinc-500">
                      <div className="flex items-center gap-1.5 bg-zinc-900/50 px-3 py-1.5 rounded-full border border-zinc-800/50">
                         <span className="opacity-80">Used {message.toolCalls.length} tools</span>
                      </div>
@@ -115,7 +115,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
                 </div>
               )}
 
-              <div className="prose prose-invert prose-zinc max-w-none prose-sm leading-[1.8] text-[15px] text-zinc-300">
+              <div className="prose prose-invert prose-zinc max-w-none prose-sm leading-[1.7] md:leading-[1.8] text-[14px] md:text-[15px] text-zinc-300">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
@@ -132,25 +132,25 @@ function MessageBubble({ message }: { message: ChatMessage }) {
                         </code>
                       )
                     },
-                    p: ({ children }) => <p className="mb-6 last:mb-0">{children}</p>,
-                    ul: ({ children }) => <ul className="list-disc pl-5 mb-6 space-y-2">{children}</ul>,
-                    ol: ({ children }) => <ol className="list-decimal pl-5 mb-6 space-y-2">{children}</ol>,
+                    p: ({ children }) => <p className="mb-4 md:mb-6 last:mb-0">{children}</p>,
+                    ul: ({ children }) => <ul className="list-disc pl-5 mb-4 md:mb-6 space-y-2">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal pl-5 mb-4 md:mb-6 space-y-2">{children}</ol>,
                     li: ({ children }) => <li className="mb-0">{children}</li>,
-                    h1: ({ children }) => <h1 className="text-2xl font-bold mb-6 mt-10 text-white tracking-tight">{children}</h1>,
-                    h2: ({ children }) => <h2 className="text-xl font-bold mb-5 mt-8 text-white tracking-tight">{children}</h2>,
-                    h3: ({ children }) => <h3 className="text-lg font-bold mb-4 mt-6 text-white tracking-tight">{children}</h3>,
+                    h1: ({ children }) => <h1 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 mt-8 md:mt-10 text-white tracking-tight">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-5 mt-6 md:mt-8 text-white tracking-tight">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-base md:text-lg font-bold mb-3 md:mb-4 mt-5 md:mt-6 text-white tracking-tight">{children}</h3>,
                     blockquote: ({ children }) => (
-                      <blockquote className="border-l-2 border-cyan-400/50 pl-6 italic text-zinc-400 my-8 bg-cyan-400/5 py-5 rounded-r-xl">
+                      <blockquote className="border-l-2 border-cyan-400/50 pl-4 md:pl-6 italic text-zinc-400 my-6 md:my-8 bg-cyan-400/5 py-4 md:py-5 rounded-r-xl">
                         {children}
                       </blockquote>
                     ),
                     table: ({ children }) => (
-                       <div className="my-8 overflow-x-auto border border-zinc-800 rounded-xl bg-zinc-900/20">
+                       <div className="my-6 md:my-8 overflow-x-auto border border-zinc-800 rounded-xl bg-zinc-900/20">
                           <table className="min-w-full divide-y divide-zinc-800">{children}</table>
                        </div>
                     ),
-                    th: ({ children }) => <th className="px-5 py-3 bg-zinc-900/50 text-left text-[11px] font-black uppercase tracking-widest text-zinc-500">{children}</th>,
-                    td: ({ children }) => <td className="px-5 py-3 text-[13px] border-t border-zinc-800/50">{children}</td>,
+                    th: ({ children }) => <th className="px-4 md:px-5 py-2 md:py-3 bg-zinc-900/50 text-left text-[10px] md:text-[11px] font-black uppercase tracking-widest text-zinc-500">{children}</th>,
+                    td: ({ children }) => <td className="px-4 md:px-5 py-2 md:py-3 text-[12px] md:text-[13px] border-t border-zinc-800/50">{children}</td>,
                   }}
                 >
                   {message.content}
@@ -285,7 +285,7 @@ export default function ChatInterface() {
     setInput(e.target.value)
     const el = e.target
     el.style.height = 'auto'
-    el.style.height = Math.min(el.scrollHeight, 320) + 'px'
+    el.style.height = Math.min(el.scrollHeight, 200) + 'px'
   }
 
   return (
@@ -296,20 +296,20 @@ export default function ChatInterface() {
         className="flex-1 overflow-y-auto no-scrollbar scroll-smooth pt-4"
       >
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center min-h-[70%] text-center px-4">
-             <div className="w-20 h-20 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-8 shadow-2xl ring-1 ring-white/5">
-                <Bot className="w-10 h-10 text-zinc-700" />
+          <div className="flex flex-col items-center justify-center min-h-[60%] md:min-h-[70%] text-center px-4">
+             <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-6 md:mb-8 shadow-2xl ring-1 ring-white/5">
+                <Bot className="w-8 h-8 md:w-10 md:h-10 text-zinc-700" />
              </div>
-             <h2 className="text-3xl font-black tracking-tighter text-white mb-3">Wingman</h2>
+             <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-white mb-3">Wingman</h2>
              <p className="text-zinc-500 text-sm font-medium max-w-sm leading-relaxed">
                Your private agent is authenticated and ready to orchestrate your workflow with Groq speed.
              </p>
           </div>
         )}
 
-        <div className="w-full pb-80">
-          <div className="flex justify-center mb-10">
-             <span className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.3em] px-4 py-1.5 bg-zinc-900/40 rounded-full border border-zinc-800/30 backdrop-blur-sm shadow-sm ring-1 ring-white/5">System Ready</span>
+        <div className="w-full pb-48 md:pb-80">
+          <div className="flex justify-center mb-6 md:mb-10">
+             <span className="text-[9px] md:text-[10px] text-zinc-600 font-black uppercase tracking-[0.3em] px-4 py-1.5 bg-zinc-900/40 rounded-full border border-zinc-800/30 backdrop-blur-sm shadow-sm ring-1 ring-white/5">System Ready</span>
           </div>
 
           <AnimatePresence initial={false}>
@@ -326,7 +326,7 @@ export default function ChatInterface() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               onClick={scrollToBottom}
-              className="fixed bottom-[200px] left-1/2 -translate-x-1/2 p-3 bg-zinc-900 border border-zinc-800 rounded-full shadow-2xl hover:bg-zinc-800 transition-all z-20 text-zinc-100 ring-4 ring-black/20"
+              className="fixed bottom-[140px] md:bottom-[200px] left-1/2 -translate-x-1/2 p-3 bg-zinc-900 border border-zinc-800 rounded-full shadow-2xl hover:bg-zinc-800 transition-all z-20 text-zinc-100 ring-4 ring-black/20"
             >
               <ArrowDown className="w-4 h-4" />
             </motion.button>
@@ -335,13 +335,13 @@ export default function ChatInterface() {
       </div>
 
       {/* Floating Input Area */}
-      <div className="absolute bottom-10 left-0 right-0 px-8 z-30 pointer-events-none">
+      <div className="absolute bottom-4 md:bottom-10 left-0 right-0 px-4 md:px-8 z-30 pointer-events-none">
         <div className="max-w-[840px] mx-auto pointer-events-auto">
           {/* Main Input Box */}
-          <div className="bg-zinc-900/95 border border-zinc-800 rounded-[32px] shadow-2xl overflow-hidden focus-within:border-zinc-700 transition-all backdrop-blur-xl ring-1 ring-white/5">
+          <div className="bg-zinc-900/95 border border-zinc-800 rounded-[24px] md:rounded-[32px] shadow-2xl overflow-hidden focus-within:border-zinc-700 transition-all backdrop-blur-xl ring-1 ring-white/5">
             {/* Form */}
-            <form onSubmit={handleSubmit} className="p-3 pt-4">
-               <div className="px-5 pb-3">
+            <form onSubmit={handleSubmit} className="p-2 md:p-3 pt-3 md:pt-4">
+               <div className="px-3 md:px-5 pb-2 md:pb-3">
                   <textarea
                     ref={inputRef}
                     value={input}
@@ -350,13 +350,13 @@ export default function ChatInterface() {
                     placeholder="Reply to Atlas"
                     disabled={isLoading}
                     rows={1}
-                    className="w-full bg-transparent text-[16px] text-zinc-50 placeholder:text-zinc-600 outline-none resize-none font-medium leading-relaxed"
-                    style={{ minHeight: '36px', maxHeight: '320px' }}
+                    className="w-full bg-transparent text-[15px] md:text-[16px] text-zinc-50 placeholder:text-zinc-600 outline-none resize-none font-medium leading-relaxed"
+                    style={{ minHeight: '32px', maxHeight: '200px' }}
                   />
                </div>
                
-               <div className="flex items-center justify-between px-3 pb-3">
-                  <div className="flex items-center gap-1.5">
+               <div className="flex items-center justify-between px-2 md:px-3 pb-2 md:pb-3">
+                  <div className="flex items-center gap-1">
                     <button
                       type="button"
                       onClick={handleEnableNotifications}
@@ -368,7 +368,7 @@ export default function ChatInterface() {
                         'Enable push notifications'
                       }
                       className={cn(
-                        "p-2.5 rounded-full transition-all",
+                        "p-2 md:p-2.5 rounded-full transition-all",
                         notifStatus === 'granted'
                           ? "text-cyan-400 bg-cyan-400/10 border border-cyan-400/20"
                           : notifStatus === 'denied'
@@ -376,33 +376,33 @@ export default function ChatInterface() {
                           : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800"
                       )}
                     >
-                       {notifStatus === 'granted' ? <BellRing className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
+                       {notifStatus === 'granted' ? <BellRing className="w-4.5 h-4.5 md:w-5 md:h-5" /> : <Bell className="w-4.5 h-4.5 md:w-5 md:h-5" />}
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 md:gap-3">
                     {isLoading ? (
                       <button
                         type="button"
                         onClick={stopGeneration}
-                        className="w-11 h-11 bg-zinc-50 text-black rounded-full hover:bg-white flex items-center justify-center transition-all shadow-xl scale-105"
+                        className="w-9 h-9 md:w-11 md:h-11 bg-zinc-50 text-black rounded-full hover:bg-white flex items-center justify-center transition-all shadow-xl scale-105"
                       >
-                        <Square className="w-4.5 h-4.5 fill-current" />
+                        <Square className="w-3.5 h-3.5 md:w-4.5 md:h-4.5 fill-current" />
                       </button>
                     ) : (
                       <button
                         type="submit"
                         disabled={!input.trim()}
-                        className="w-11 h-11 bg-zinc-800 text-zinc-500 rounded-full border border-zinc-700 hover:border-zinc-500 hover:text-white flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed group"
+                        className="w-9 h-9 md:w-11 md:h-11 bg-zinc-800 text-zinc-500 rounded-full border border-zinc-700 hover:border-zinc-500 hover:text-white flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed group"
                       >
-                        <Send className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        <Send className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-110 transition-transform" />
                       </button>
                     )}
                   </div>
                </div>
             </form>
           </div>
-          <p className="text-center text-[10px] text-zinc-700 font-bold uppercase tracking-[0.2em] mt-5">
+          <p className="hidden sm:block text-center text-[9px] md:text-[10px] text-zinc-700 font-bold uppercase tracking-[0.2em] mt-3 md:mt-5">
             Agent Instance • V0.4.1 • Phoenix, AZ
           </p>
         </div>
